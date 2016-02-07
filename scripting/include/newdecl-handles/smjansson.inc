@@ -22,7 +22,7 @@ enum JSONType {
 	JSONType_Array,
 	JSONType_String,
 	JSONType_Integer,
-	JSONType_Real,
+	JSONType_Float,
 	JSONType_True,
 	JSONType_False,
 	JSONType_Null
@@ -60,7 +60,7 @@ methodmap JSONValue < Handle {
 
 methodmap JSONBoolean < JSONValue {
 	public JSONBoolean(bool value) {
-		return view_as<JSONBoolean>(value ? json_true() : json_false());
+		return view_as<JSONBoolean>(json_boolean());
 	}
 	property bool Value {
 		public get() {
@@ -159,6 +159,12 @@ methodmap JSONRootNode < JSONValue {
 	public bool ToFile(const char[] filePath, int indentWidth = 4, bool asciiOnly = false,
 			bool sortKeys = false, bool preserveOrder = false) {
 		return json_dump_file(this, filePath, indentWidth, asciiOnly, sortKeys, preserveOrder);
+	}
+	
+	public static JSONRootNode FromFile(const char[] filePath) {
+		char path[PLATFORM_MAX_PATH];
+		strcopy(path, sizeof(path), filePath);
+		return view_as<JSONRootNode>(json_load_file(path));
 	}
 	
 	public static JSONRootNode Pack(const char[] packString, ArrayList params) {
@@ -317,6 +323,20 @@ methodmap JSONArray < JSONRootNode {
 		return this.Insert(index, new JSONString(value));
 	}
 	
+	/* Misc. functions */
+	
+	public static JSONArray FromFile(const char[] filePath) {
+		JSONRootNode data = JSONRootNode.FromFile(filePath);
+		
+		if (data.Type == JSONType_Array) {
+			return view_as<JSONArray>(data);
+		} else {
+			ThrowError("File loaded by JSONArray.FromFile was not an array");
+			delete data;
+			return null;
+		}
+	}
+	
 	public static JSONArray Pack(const char[] packString, ArrayList params) {
 		int length = strlen(packString);
 		if (packString[0] == '[' && packString[length - 1] == ']') {
@@ -439,6 +459,20 @@ methodmap JSONObject < JSONRootNode {
 	
 	public bool SetString(const char[] key, const char[] value) {
 		return this.Set(key, new JSONString(value));
+	}
+	
+	/* Misc. functions */
+	
+	public static JSONObject FromFile(const char[] filePath) {
+		JSONRootNode data = JSONRootNode.FromFile(filePath);
+		
+		if (data.Type == JSONType_Object) {
+			return view_as<JSONObject>(data);
+		} else {
+			ThrowError("File loaded by JSONObject.FromFile was not an object");
+			delete data;
+			return null;
+		}
 	}
 	
 	public static JSONObject Pack(const char[] packString, ArrayList params) {
