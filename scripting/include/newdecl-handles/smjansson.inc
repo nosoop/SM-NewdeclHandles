@@ -60,7 +60,7 @@ methodmap JSONValue < Handle {
 
 methodmap JSONBoolean < JSONValue {
 	public JSONBoolean(bool value) {
-		return view_as<JSONBoolean>(json_boolean());
+		return view_as<JSONBoolean>(json_boolean(value));
 	}
 	property bool Value {
 		public get() {
